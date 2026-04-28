@@ -1,132 +1,66 @@
-<! html>
-<html lang="bn">
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nahid VIP Messenger</title>
+    <title>Chat App - Chat2026</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Poppins', sans-serif; background: #0f172a; color: #fff; }
-        
-        /* গ্লাস মরফিজম ডিজাইন */
-        .app-container { height: 100vh; display: flex; flex-direction: column; }
-        
-        .header { 
-            background: rgba(30, 41, 59, 0.8); 
-            backdrop-filter: blur(10px);
-            padding: 15px; 
-            display: flex; align-items: center; 
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .status-dot { width: 10px; height: 10px; background: #22c55e; border-radius: 50%; margin-right: 10px; box-shadow: 0 0 10px #22c55e; }
-
-        .chat-box { 
-            flex: 1; padding: 20px; 
-            overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
-            background: radial-gradient(circle at top, #1e293b, #0f172a);
-        }
-
-        .msg { max-width: 80%; padding: 12px 16px; border-radius: 20px; font-size: 15px; line-height: 1.5; }
-        
-        /* পাঠানো মেসেজ - নিওন ব্লু */
-        .sent { 
-            align-self: flex-end; 
-            background: linear-gradient(135deg, #3b82f6, #2563eb); 
-            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
-            border-bottom-right-radius: 4px;
-        }
-
-        /* আসা মেসেজ - ডার্ক গ্লাস */
-        .received { 
-            align-self: flex-start; 
-            background: rgba(255,255,255,0.1); 
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-bottom-left-radius: 4px;
-        }
-
-        .time { font-size: 10px; opacity: 0.5; display: block; margin-top: 5px; text-align: right; }
-
-        .input-area { 
-            padding: 15px; background: #1e293b; 
-            display: flex; gap: 10px; align-items: center;
-        }
-
-        input { 
-            flex: 1; padding: 12px 20px; border-radius: 25px; 
-            border: none; background: #334155; color: white; outline: none;
-        }
-
-        button { 
-            width: 45px; height: 45px; border-radius: 50%; 
-            border: none; background: #3b82f6; color: white; 
-            font-size: 20px; cursor: pointer; transition: 0.3s;
-        }
-        button:hover { background: #2563eb; transform: scale(1.1); }
+        body { font-family: Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; display: flex; flex-direction: column; height: 90vh; }
+        #display { flex: 1; overflow-y: auto; background: white; padding: 15px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 10px; display: flex; flex-direction: column; }
+        .msg { padding: 10px; border-radius: 10px; margin: 5px 0; max-width: 70%; word-wrap: break-word; position: relative; font-size: 14px; }
+        .sent { align-self: flex-end; background-color: #0084ff; color: white; }
+        .received { align-self: flex-start; background-color: #e4e6eb; color: black; }
+        .time { font-size: 10px; display: block; margin-top: 5px; opacity: 0.7; }
+        .input-area { display: flex; gap: 10px; }
+        input { flex: 1; padding: 12px; border-radius: 20px; border: 1px solid #ddd; outline: none; }
+        button { padding: 10px 20px; border-radius: 20px; border: none; background: #0084ff; color: white; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <div class="header">
-        <div class="status-dot"></div>
-        <div>
-            <h3 style="font-size: 16px;">Nahid Team VIP</h3>
-            <small style="opacity: 0.7;">Active Now</small>
-        </div>
-    </div>
-
-    <div class="chat-box" id="chatDisplay"></div>
+    <h2 style="text-align: center; color: #0084ff;">Chat2026</h2>
+    <div id="display"></div>
 
     <div class="input-area">
-        <input type="text" id="userInput" placeholder="কিছু লিখুন..." autocomplete="off">
-        <button id="btnSend">➤</button>
+        <input type="text" id="msg" placeholder="Type a message...">
+        <button onclick="send()">Send</button>
     </div>
-</div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, push, onChildAdded, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyAQyChxajaz0cb8NS_NiWcOsi60WI2cR2A",
-        authDomain: "whatsapp-76.firebaseapp.com",
-        projectId: "whatsapp-76",
-        databaseURL: "https://whatsapp-76-default-rtdb.firebaseio.com",
-        storageBucket: "whatsapp-76.firebasestorage.app",
-        messagingSenderId: "408180819689",
-        appId: "1:408180819689:web:e817f2589811e0e8a51278"
-    };
+        // Your Firebase Configuration
+        const firebaseConfig = {
+            databaseURL: "https://chat2026-6b219-default-rtdb.firebaseio.com/"
+        };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const msgRef = ref(db, "messages");
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const msgRef = ref(db, "messages");
 
-    const display = document.getElementById("chatDisplay");
-    const input = document.getElementById("userInput");
-    const send = document.getElementById("btnSend");
+        window.send = function() {
+            const text = document.getElementById("msg").value;
+            if (text.trim() !== "") {
+                push(msgRef, {
+                    name: "Nahid", // আপনি চাইলে এখানে ইউজারের নাম পরিবর্তনশীল করতে পারেন
+                    text: text,
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    timestamp: serverTimestamp()
+                });
+                document.getElementById("msg").value = "";
+            }
+        };
 
-    send.onclick = () => {
-        if(input.value.trim() !== "") {
-            push(msgRef, {
-                name: "Nahid",
-                text: input.value,
-                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
-            });
-            input.value = "";
-        }
-    };
-
-    onChildAdded(msgRef, (data) => {
-        const item = data.val();
-        const div = document.createElement("div");
-        div.className = `msg ${item.name === "Nahid" ? "sent" : "received"}`;
-        div.innerHTML = `${item.text} <span class="time">${item.time}</span>`;
-        display.appendChild(div);
-        display.scrollTop = display.scrollHeight;
-    });
-</script>
-
+        const display = document.getElementById("display");
+        onChildAdded(msgRef, (data) => {
+            const item = data.val();
+            const div = document.createElement("div");
+            div.className = `msg ${item.name === "Nahid" ? "sent" : "received"}`;
+            div.innerHTML = `${item.text} <span class="time">${item.time}</span>`;
+            display.appendChild(div);
+            display.scrollTop = display.scrollHeight;
+        });
+    </script>
 </body>
 </html>
